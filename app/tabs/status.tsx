@@ -39,6 +39,17 @@ export const Status: React.FC = () => {
           ))}
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="p-2 rounded border border-orange-500/30 bg-orange-950/20">
+          <div className="text-[10px] text-orange-300 uppercase">Core Frequency</div>
+          <div className="text-lg text-orange-200 font-bold">{Math.round((creature.stats.Power + creature.stats.Energy) / 2)}%</div>
+        </div>
+        <div className="p-2 rounded border border-violet-500/30 bg-violet-950/20">
+          <div className="text-[10px] text-violet-300 uppercase">Alignment</div>
+          <div className="text-lg text-violet-200 font-bold">{Math.round((creature.stats.Bond + creature.stats.Stability) / 2)}%</div>
+        </div>
+      </div>
     </div>
   );
 };

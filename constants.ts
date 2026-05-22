@@ -1,4 +1,4 @@
-import { Creature, Stage, StatType, ItemDefinition, ItemCategory } from './types';
+import { Creature, Stage, StatType, ItemDefinition, ItemCategory, MissionDefinition, ShopItem } from './types';
 
 export const INITIAL_STATS = {
   [StatType.ENERGY]: 50,
@@ -23,6 +23,7 @@ export const INITIAL_CREATURE: Creature = {
 };
 
 export const INITIAL_HATCHERY_SLOTS = 3;
+export const MAX_HATCHERY_SLOTS = 6;
 
 export const STAGE_THRESHOLDS = {
   [Stage.BABY]: 5,
@@ -109,3 +110,106 @@ export const INITIAL_INVENTORY = {
   'comfort_berry': 2,
   'fusion_core': 1
 };
+
+export const MISSION_DEFINITIONS: MissionDefinition[] = [
+  {
+    id: 'sync-link',
+    title: 'Sync Link',
+    description: 'Establish connection protocols 3 times.',
+    type: 'ACTION',
+    action: 'CONNECT',
+    target: 3,
+    rewardCredits: 20
+  },
+  {
+    id: 'play-loop',
+    title: 'Play Loop',
+    description: 'Play with your creature 3 times.',
+    type: 'ACTION',
+    action: 'PLAY',
+    target: 3,
+    rewardCredits: 18
+  },
+  {
+    id: 'field-study',
+    title: 'Field Study',
+    description: 'Explore the network twice.',
+    type: 'ACTION',
+    action: 'EXPLORE',
+    target: 2,
+    rewardCredits: 25,
+    rewardItemId: 'logic_puzzle'
+  },
+  {
+    id: 'chip-feed',
+    title: 'Chip Feed',
+    description: 'Use 2 Energy Chips.',
+    type: 'ITEM',
+    itemId: 'energy_chip',
+    target: 2,
+    rewardCredits: 15
+  },
+  {
+    id: 'evolve-signal',
+    title: 'Evolution Signal',
+    description: 'Complete a creature evolution.',
+    type: 'EVOLVE',
+    target: 1,
+    rewardCredits: 40,
+    rewardItemId: 'memory_shard'
+  },
+  {
+    id: 'fusion-trial',
+    title: 'Fusion Trial',
+    description: 'Complete one fusion cycle.',
+    type: 'FUSION',
+    target: 1,
+    rewardCredits: 60,
+    rewardItemId: 'fusion_core'
+  }
+];
+
+export const SHOP_ITEMS: ShopItem[] = [
+  {
+    id: 'shop-energy-chip',
+    name: 'Energy Chip',
+    description: 'Restore energy reserves quickly.',
+    cost: 12,
+    itemId: 'energy_chip'
+  },
+  {
+    id: 'shop-comfort-berry',
+    name: 'Comfort Berry',
+    description: 'Boost bond and stability.',
+    cost: 15,
+    itemId: 'comfort_berry'
+  },
+  {
+    id: 'shop-data-weight',
+    name: 'Heavy Data',
+    description: 'Pushes power training further.',
+    cost: 20,
+    itemId: 'data_weight'
+  },
+  {
+    id: 'shop-logic-puzzle',
+    name: 'Logic Core',
+    description: 'Ignite curiosity routines.',
+    cost: 18,
+    itemId: 'logic_puzzle'
+  },
+  {
+    id: 'shop-fusion-core',
+    name: 'Fusion Core',
+    description: 'Stabilizes fusion experiments.',
+    cost: 45,
+    itemId: 'fusion_core'
+  },
+  {
+    id: 'shop-hatchery-slot',
+    name: 'Hatchery Slot',
+    description: 'Expand your hatchery capacity by 1.',
+    cost: 75,
+    upgrade: 'HATCHERY_SLOT'
+  }
+];

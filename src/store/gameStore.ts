@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { 
-  GameState, Creature, Stage, ActionType, StatType, EvolutionOption, LogEntry 
+  GameState, Creature, Stage, ActionType, StatType, EvolutionOption, LogEntry, MissionState, MissionDefinition
 } from "../../types";
 import { 
-  INITIAL_CREATURE, INITIAL_HATCHERY_SLOTS, INITIAL_INVENTORY, GAME_ITEMS 
+  INITIAL_CREATURE, INITIAL_HATCHERY_SLOTS, INITIAL_INVENTORY, GAME_ITEMS, MISSION_DEFINITIONS, SHOP_ITEMS, MAX_HATCHERY_SLOTS
 } from "../../constants";
 import { 
   generateCreatureResponse, generateEvolutionOptions, generateExploreEvent, generateFusionResult 
@@ -19,6 +19,8 @@ interface GameActions {
   handleEvolve: () => Promise<void>;
   finalizeEvolution: (path: EvolutionOption) => void;
   handleFusion: (slotA: string, slotB: string) => Promise<void>;
+  claimMissionReward: (missionId: string) => void;
+  handlePurchase: (shopItemId: string) => void;
   processTime: () => void;
 }
 
@@ -26,6 +28,29 @@ interface StoreState extends GameState, GameActions {
   evolutionPaths: EvolutionOption[] | null;
   setEvolutionPaths: (paths: EvolutionOption[] | null) => void;
 }
+
+const initializeMissions = (missions: MissionDefinition[]): MissionState[] =>
+  missions.map((mission) => ({
+    ...mission,
+    progress: 0,
+    completed: false,
+    claimed: false
+  }));
+
+const updateMissionProgress = (
+  missions: MissionState[],
+  matcher: (mission: MissionState) => boolean,
+  increment = 1
+): MissionState[] =>
+  missions.map((mission) => {
+    if (!matcher(mission) || mission.completed) return mission;
+    const progress = Math.min(mission.target, mission.progress + increment);
+    return {
+      ...mission,
+      progress,
+      completed: progress >= mission.target
+    };
+  });
 
 export const useGameStore = create<StoreState>((set, get) => ({
   // Initial State
@@ -41,6 +66,8 @@ export const useGameStore = create<StoreState>((set, get) => ({
   isThinking: false,
   inventory: INITIAL_INVENTORY,
   digidex: [],
+  credits: 35,
+  missions: initializeMissions(MISSION_DEFINITIONS),
   activeTab: 'HOME',
   lastTickAt: Date.now(),
   evolutionPaths: null,
@@ -72,6 +99,9 @@ export const useGameStore = create<StoreState>((set, get) => ({
     
     const impacts: Partial<Record<StatType, number>> = {};
     let logMsg = '';
+    let bonusCredits = 0;
+    const bonusLogs: LogEntry[] = [];
+    const inventoryUpdates: Record<string, number> = {};
 
     switch (action) {
       case 'CONNECT': impacts[StatType.BOND] = 10; impacts[StatType.ENERGY] = 5; logMsg = 'Warmth transferred.'; break;
@@ -79,6 +109,7 @@ export const useGameStore = create<StoreState>((set, get) => ({
       case 'FEED': impacts[StatType.ENERGY] = 25; logMsg = 'Nutrients absorbed.'; break;
       case 'TRAIN': impacts[StatType.POWER] = 5; impacts[StatType.ENERGY] = -15; logMsg = 'Training complete.'; break;
       case 'TALK': impacts[StatType.BOND] = 5; impacts[StatType.CURIOSITY] = 5; logMsg = 'Data shared.'; break;
+      case 'PLAY': impacts[StatType.BOND] = 6; impacts[StatType.CURIOSITY] = 6; impacts[StatType.ENERGY] = -8; logMsg = 'Play session synced.'; break;
       case 'EXPLORE': impacts[StatType.CURIOSITY] = 10; impacts[StatType.ENERGY] = -20; break;
       case 'REST': impacts[StatType.ENERGY] = 50; impacts[StatType.STABILITY] = 5; logMsg = 'System sleeping...'; break;
       case 'DISCIPLINE': impacts[StatType.STABILITY] = 10; impacts[StatType.BOND] = -5; logMsg = 'Protocols enforced.'; break;
@@ -91,10 +122,12 @@ export const useGameStore = create<StoreState>((set, get) => ({
         const itemKeys = Object.keys(GAME_ITEMS);
         const randomItemKey = itemKeys[Math.floor(Math.random() * itemKeys.length)];
         const item = GAME_ITEMS[randomItemKey];
-        set((prev) => ({
-          inventory: { ...prev.inventory, [randomItemKey]: (prev.inventory[randomItemKey] || 0) + 1 },
-          logs: [...prev.logs, { id: Date.now()+'item', text: `DOWNLOADED: ${item.name}`, type: 'item', timestamp: Date.now() }]
-        }));
+        inventoryUpdates[randomItemKey] = (inventoryUpdates[randomItemKey] || 0) + 1;
+        bonusLogs.push({ id: Date.now()+'item', text: `DOWNLOADED: ${item.name}`, type: 'item', timestamp: Date.now() });
+      }
+      if (Math.random() > 0.6) {
+        bonusCredits = Math.floor(8 + Math.random() * 10);
+        bonusLogs.push({ id: Date.now()+'credit', text: `CREDITS RECOVERED: +${bonusCredits}`, type: 'system', timestamp: Date.now() });
       }
     }
 
@@ -112,10 +145,22 @@ export const useGameStore = create<StoreState>((set, get) => ({
         });
         return { ...c, stats: newStats };
       });
+      const updatedInventory = { ...prev.inventory };
+      Object.entries(inventoryUpdates).forEach(([itemId, count]) => {
+        updatedInventory[itemId] = (updatedInventory[itemId] || 0) + count;
+      });
+      const updatedMissions = updateMissionProgress(
+        prev.missions,
+        (mission) => mission.type === 'ACTION' && mission.action === action
+      );
       return { 
         creatures: updatedCreatures, 
         isThinking: false,
-        logs: [...prev.logs, 
+        credits: prev.credits + bonusCredits,
+        inventory: updatedInventory,
+        missions: updatedMissions,
+        logs: [...prev.logs,
+          ...bonusLogs,
           { id: Date.now() + 'sys', text: `> ${logMsg}`, type: 'system', timestamp: Date.now() },
           { id: Date.now() + 'res', text: `"${response}"`, type: 'creature', timestamp: Date.now() }
         ]
@@ -155,6 +200,10 @@ export const useGameStore = create<StoreState>((set, get) => ({
     
     set((prev) => ({
       isThinking: false,
+      missions: updateMissionProgress(
+        prev.missions,
+        (mission) => mission.type === 'ITEM' && mission.itemId === itemId
+      ),
       logs: [...prev.logs, 
         { id: Date.now()+'use', text: `USED: ${item.name}`, type: 'item', timestamp: Date.now() },
         { id: Date.now()+'res', text: `"${response}"`, type: 'creature', timestamp: Date.now() }
@@ -214,6 +263,7 @@ export const useGameStore = create<StoreState>((set, get) => ({
       return { 
         creatures: updatedCreatures, 
         evolutionPaths: null,
+        missions: updateMissionProgress(prev.missions, (mission) => mission.type === 'EVOLVE'),
         digidex: [...prev.digidex, newDexEntry],
         logs: [...prev.logs, { id: Date.now()+'evo', text: `EVOLUTION COMPLETE!`, type: 'evolution', timestamp: Date.now() }] 
       };
@@ -261,9 +311,85 @@ export const useGameStore = create<StoreState>((set, get) => ({
         creatures: [...remaining, fusedCreature],
         activeCreatureId: fusedCreature.id,
         inventory: newInv,
+        missions: updateMissionProgress(prev.missions, (mission) => mission.type === 'FUSION'),
         activeTab: 'HOME',
         isThinking: false,
         logs: [...prev.logs, { id: Date.now()+'fuse', text: `FUSION COMPLETE: ${fusedCreature.name}`, type: 'fusion', timestamp: Date.now() }]
+      };
+    });
+  },
+
+  claimMissionReward: (missionId) => {
+    set((prev) => {
+      const mission = prev.missions.find((item) => item.id === missionId);
+      if (!mission || !mission.completed || mission.claimed) return prev;
+
+      const updatedMissions = prev.missions.map((item) =>
+        item.id === missionId ? { ...item, claimed: true } : item
+      );
+      const updatedInventory = { ...prev.inventory };
+      const rewardLogs: LogEntry[] = [];
+      if (mission.rewardItemId) {
+        const rewardItem = GAME_ITEMS[mission.rewardItemId];
+        updatedInventory[mission.rewardItemId] = (updatedInventory[mission.rewardItemId] || 0) + 1;
+        rewardLogs.push({
+          id: Date.now() + 'reward-item',
+          text: `MISSION REWARD: ${rewardItem.name}`,
+          type: 'item',
+          timestamp: Date.now()
+        });
+      }
+      rewardLogs.push({
+        id: Date.now() + 'reward-credit',
+        text: `MISSION REWARD: +${mission.rewardCredits} CREDITS`,
+        type: 'system',
+        timestamp: Date.now()
+      });
+      return {
+        missions: updatedMissions,
+        credits: prev.credits + mission.rewardCredits,
+        inventory: updatedInventory,
+        logs: [...prev.logs, ...rewardLogs]
+      };
+    });
+  },
+
+  handlePurchase: (shopItemId) => {
+    set((prev) => {
+      const shopItem = SHOP_ITEMS.find((item) => item.id === shopItemId);
+      if (!shopItem || prev.credits < shopItem.cost) return prev;
+
+      const updatedInventory = { ...prev.inventory };
+      let updatedSlots = prev.hatcherySlots;
+      const purchaseLogs: LogEntry[] = [];
+
+      if (shopItem.itemId) {
+        const item = GAME_ITEMS[shopItem.itemId];
+        updatedInventory[shopItem.itemId] = (updatedInventory[shopItem.itemId] || 0) + 1;
+        purchaseLogs.push({
+          id: Date.now() + 'purchase-item',
+          text: `PURCHASED: ${item.name}`,
+          type: 'item',
+          timestamp: Date.now()
+        });
+      }
+
+      if (shopItem.upgrade === 'HATCHERY_SLOT') {
+        if (prev.hatcherySlots >= MAX_HATCHERY_SLOTS) return prev;
+        updatedSlots = prev.hatcherySlots + 1;
+        purchaseLogs.push({
+          id: Date.now() + 'purchase-upgrade',
+          text: 'HATCHERY EXPANDED',
+          type: 'system',
+          timestamp: Date.now()
+        });
+      }
+
+      return {
+        credits: prev.credits - shopItem.cost,
+        inventory: updatedInventory,
+        hatcherySlots: updatedSlots,
+        logs: [...prev.logs, ...purchaseLogs]
       };
     });
   }

@@ -5,9 +5,10 @@ interface CreatureDisplayProps {
   stage: Stage;
   isThinking: boolean;
   color: string;
+  auraMode?: 'nova' | 'void';
 }
 
-export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ stage, isThinking, color }) => {
+export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ stage, isThinking, color, auraMode = 'nova' }) => {
   const [idleAnim, setIdleAnim] = useState('');
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ stage, isThink
 
   return (
     <div className="relative flex items-center justify-center h-64 w-full">
+      <div className={`absolute inset-8 rounded-full blur-3xl opacity-40 ${auraMode === 'nova' ? 'bg-orange-500/40' : 'bg-violet-500/40'}`} />
       {/* Wrapper handles the continuous float to avoid conflicting with idle transforms */}
       <div className="animate-float">
         {getShape()}

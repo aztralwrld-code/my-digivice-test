@@ -79,7 +79,36 @@ export interface DigidexEntry {
   unlockedAt: number;
 }
 
-export type TabView = 'HOME' | 'STATUS' | 'ACTIONS' | 'INVENTORY' | 'DIGIDEX' | 'HATCHERY' | 'FUSION';
+export type MissionType = 'ACTION' | 'ITEM' | 'EVOLVE' | 'FUSION';
+
+export interface MissionDefinition {
+  id: string;
+  title: string;
+  description: string;
+  type: MissionType;
+  target: number;
+  rewardCredits: number;
+  rewardItemId?: string;
+  action?: ActionType;
+  itemId?: string;
+}
+
+export interface MissionState extends MissionDefinition {
+  progress: number;
+  completed: boolean;
+  claimed: boolean;
+}
+
+export interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  itemId?: string;
+  upgrade?: 'HATCHERY_SLOT';
+}
+
+export type TabView = 'HOME' | 'STATUS' | 'ACTIONS' | 'INVENTORY' | 'DIGIDEX' | 'HATCHERY' | 'MISSIONS' | 'MARKET' | 'FUSION';
 
 export type ActionType = 'FEED' | 'TRAIN' | 'TALK' | 'EXPLORE' | 'REST' | 'DISCIPLINE' | 'CONNECT' | 'BOND' | 'PLAY';
 
@@ -91,6 +120,8 @@ export interface GameState {
   isThinking: boolean;
   inventory: Record<string, number>;
   digidex: DigidexEntry[];
+  credits: number;
+  missions: MissionState[];
   activeTab: TabView;
   lastTickAt: number;
 }
