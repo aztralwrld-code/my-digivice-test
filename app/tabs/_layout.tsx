@@ -51,21 +51,23 @@ export default function TabsLayout() {
       default:
         if (!activeCreature) return null;
         return (
-          <div className="flex-1 flex flex-col items-center justify-center transition-all">
+          <div className="flex-1 flex flex-col items-center justify-center transition-all relative overflow-hidden rounded-lg border border-orange-500/20 bg-gradient-to-b from-orange-950/30 via-indigo-950/20 to-black/20">
+             <div className="absolute top-2 left-2 text-[10px] text-orange-300 tracking-widest">NOVA CORE :: ACTIVE</div>
+             <div className="absolute bottom-2 right-2 text-[10px] text-violet-300 tracking-widest">FLAME • SPARK • ANCHOR • EVOLUTION</div>
              {activeCreature.evolutionReady ? (
-               <button onClick={handleEvolve} className="animate-pulse bg-cyan-500 text-black px-6 py-3 rounded font-bold shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+               <button onClick={handleEvolve} className="animate-pulse bg-orange-500 text-black px-6 py-3 rounded font-bold shadow-[0_0_20px_rgba(249,115,22,0.5)]">
                  EVOLUTION SIGNAL DETECTED
                </button>
              ) : (
                <div className="transform scale-110">
-                 <CreatureDisplay stage={activeCreature.stage} isThinking={isThinking} color={activeCreature.color} />
+                 <CreatureDisplay stage={activeCreature.stage} isThinking={isThinking} color={activeCreature.color} auraMode={activeCreature.isFused ? 'void' : 'nova'} />
                </div>
              )}
              <div className="mt-8 text-center">
-               <h1 className="text-4xl font-bold text-cyan-200 uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+               <h1 className="text-4xl font-bold text-orange-200 uppercase drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]">
                  {activeCreature.name}
                </h1>
-               <div className="text-cyan-600 text-xs tracking-[0.5em] mt-1">
+               <div className="text-orange-400 text-xs tracking-[0.5em] mt-1">
                  {activeCreature.stage} {activeCreature.isFused && <span className="text-purple-400 ml-2">[FUSED]</span>}
                </div>
              </div>
@@ -83,8 +85,8 @@ export default function TabsLayout() {
     <div className="min-h-screen flex items-center justify-center bg-[#000510] p-4 font-vt323">
       <Digivice>
         {/* Header */}
-        <div className="flex justify-between items-center mb-4 border-b-2 border-cyan-900/30 pb-2">
-          <div className="text-xs text-cyan-600 tracking-[0.2em] font-bold">
+        <div className="flex justify-between items-center mb-4 border-b-2 border-orange-900/30 pb-2">
+          <div className="text-xs text-orange-500 tracking-[0.2em] font-bold">
             {activeTab === 'HOME' ? 'AETHER LINK' : activeTab}
           </div>
           <div className="flex items-center gap-2 text-[10px] text-cyan-800 font-mono">
@@ -120,7 +122,7 @@ export default function TabsLayout() {
         </div>
 
         {/* Log Viewer */}
-        <div ref={scrollRef} className="mt-4 h-16 bg-black/60 rounded p-2 text-xs font-mono overflow-y-auto border border-cyan-900/30">
+        <div ref={scrollRef} className="mt-4 h-16 bg-black/60 rounded p-2 text-xs font-mono overflow-y-auto border border-orange-900/30">
            {logs.map(log => (
              <div key={log.id} className={`mb-0.5 ${log.type === 'creature' ? 'text-green-400' : log.type === 'item' ? 'text-yellow-400' : log.type === 'evolution' ? 'text-pink-400 font-bold' : log.type === 'fusion' ? 'text-purple-400 font-bold' : 'text-cyan-700'}`}>
                {log.type === 'system' && '> '}{log.text}
@@ -129,7 +131,7 @@ export default function TabsLayout() {
         </div>
 
         {/* Navigation Dock */}
-        <div className="mt-4 grid grid-cols-9 gap-1 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+        <div className="mt-4 grid grid-cols-9 gap-1 bg-slate-900/50 p-1 rounded-lg border border-orange-900/40">
            {[{ id: 'HOME', icon: '⌂', label: 'HOME' }, { id: 'STATUS', icon: '📊', label: 'STAT' }, { id: 'ACTIONS', icon: '⚡', label: 'ACT' }, { id: 'INVENTORY', icon: '🎒', label: 'BAG' }, { id: 'DIGIDEX', icon: '📘', label: 'DEX' }, { id: 'HATCHERY', icon: '🥚', label: 'NEST' }, { id: 'MISSIONS', icon: '🎯', label: 'TASK' }, { id: 'MARKET', icon: '🛒', label: 'SHOP' }, { id: 'FUSION', icon: '⚛️', label: 'FUSE' }].map((tab) => (
              <button key={tab.id} onClick={() => setGameState({ activeTab: tab.id as TabView })} className={`flex flex-col items-center justify-center p-1 rounded transition-all ${activeTab === tab.id ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.4)]' : 'text-cyan-600 hover:bg-cyan-900/30 hover:text-cyan-300'}`}>
                <span className="text-xl leading-none mb-0.5">{tab.icon}</span>
