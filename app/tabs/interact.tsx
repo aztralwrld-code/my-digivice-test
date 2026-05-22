@@ -10,6 +10,10 @@ export const Interact: React.FC = () => {
         <span className="text-2xl mb-1">💬</span>
         <span className="text-xs font-bold text-blue-300 tracking-widest">SPEAK</span>
       </button>
+      <button onClick={() => handleAction('PLAY')} className="p-4 bg-indigo-900/20 border border-indigo-500/30 rounded flex flex-col items-center hover:bg-indigo-900/40 transition-colors">
+        <span className="text-2xl mb-1">🎮</span>
+        <span className="text-xs font-bold text-indigo-300 tracking-widest">PLAY</span>
+      </button>
       <button onClick={() => handleAction('DISCIPLINE')} className="p-4 bg-purple-900/20 border border-purple-500/30 rounded flex flex-col items-center hover:bg-purple-900/40 transition-colors">
         <span className="text-2xl mb-1">⚠️</span>
         <span className="text-xs font-bold text-purple-300 tracking-widest">WARN</span>
@@ -29,6 +33,10 @@ export const Interact: React.FC = () => {
       <button onClick={() => handleAction('EXPLORE')} className="p-4 bg-green-900/20 border border-green-500/30 rounded flex flex-col items-center hover:bg-green-900/40 transition-colors">
         <span className="text-2xl mb-1">🕸️</span>
         <span className="text-xs font-bold text-green-300 tracking-widest">EXPLORE</span>
+      </button>
+      <button onClick={() => handleAction('REST')} className="p-4 bg-slate-900/40 border border-slate-500/30 rounded flex flex-col items-center hover:bg-slate-900/60 transition-colors">
+        <span className="text-2xl mb-1">🌙</span>
+        <span className="text-xs font-bold text-slate-300 tracking-widest">REST</span>
       </button>
     </div>
   );

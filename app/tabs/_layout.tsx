@@ -10,6 +10,8 @@ import { Feed } from './feed';
 import { Interact } from './interact';
 import { Hatchery } from './hatchery';
 import { Digidex } from './digidex';
+import { Missions } from './missions';
+import { Market } from './market';
 
 export default function TabsLayout() {
   const { 
@@ -18,6 +20,7 @@ export default function TabsLayout() {
     activeCreatureId, 
     creatures, 
     logs,
+    credits,
     evolutionPaths,
     finalizeEvolution,
     handleEvolve,
@@ -42,6 +45,8 @@ export default function TabsLayout() {
       case 'ACTIONS': return <Interact />;
       case 'HATCHERY': return <Hatchery />;
       case 'DIGIDEX': return <Digidex />;
+      case 'MISSIONS': return <Missions />;
+      case 'MARKET': return <Market />;
       case 'HOME':
       default:
         if (!activeCreature) return null;
@@ -82,8 +87,13 @@ export default function TabsLayout() {
           <div className="text-xs text-cyan-600 tracking-[0.2em] font-bold">
             {activeTab === 'HOME' ? 'AETHER LINK' : activeTab}
           </div>
-          <div className="text-[10px] text-cyan-800 font-mono">
-             {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          <div className="flex items-center gap-2 text-[10px] text-cyan-800 font-mono">
+            <div className="px-2 py-0.5 rounded bg-cyan-900/40 text-cyan-300 border border-cyan-600/40">
+              ₡ {credits}
+            </div>
+            <div>
+              {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </div>
           </div>
         </div>
 
@@ -119,8 +129,8 @@ export default function TabsLayout() {
         </div>
 
         {/* Navigation Dock */}
-        <div className="mt-4 grid grid-cols-7 gap-1 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
-           {[{ id: 'HOME', icon: '⌂', label: 'HOME' }, { id: 'STATUS', icon: '📊', label: 'STAT' }, { id: 'ACTIONS', icon: '⚡', label: 'ACT' }, { id: 'INVENTORY', icon: '🎒', label: 'BAG' }, { id: 'DIGIDEX', icon: '📘', label: 'DEX' }, { id: 'HATCHERY', icon: '🥚', label: 'NEST' }, { id: 'FUSION', icon: '⚛️', label: 'FUSE' }].map((tab) => (
+        <div className="mt-4 grid grid-cols-9 gap-1 bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+           {[{ id: 'HOME', icon: '⌂', label: 'HOME' }, { id: 'STATUS', icon: '📊', label: 'STAT' }, { id: 'ACTIONS', icon: '⚡', label: 'ACT' }, { id: 'INVENTORY', icon: '🎒', label: 'BAG' }, { id: 'DIGIDEX', icon: '📘', label: 'DEX' }, { id: 'HATCHERY', icon: '🥚', label: 'NEST' }, { id: 'MISSIONS', icon: '🎯', label: 'TASK' }, { id: 'MARKET', icon: '🛒', label: 'SHOP' }, { id: 'FUSION', icon: '⚛️', label: 'FUSE' }].map((tab) => (
              <button key={tab.id} onClick={() => setGameState({ activeTab: tab.id as TabView })} className={`flex flex-col items-center justify-center p-1 rounded transition-all ${activeTab === tab.id ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.4)]' : 'text-cyan-600 hover:bg-cyan-900/30 hover:text-cyan-300'}`}>
                <span className="text-xl leading-none mb-0.5">{tab.icon}</span>
                <span className="text-[9px] font-bold tracking-wider">{tab.label}</span>
